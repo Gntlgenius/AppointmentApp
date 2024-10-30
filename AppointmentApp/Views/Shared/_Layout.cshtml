@@ -1,0 +1,146 @@
+﻿@using CRMIntegration.Models
+
+@{
+    ViewBag.Success = TempData["msg"] as string;
+    ViewBag.Error = TempData["error"] as string;
+    var profile = Session["_profile"] as CreateUser; // Assuming UserDetails is your model
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+
+    <style>
+        .logout-button {
+            margin: 0;  /*Remove margin for consistent vertical alignment*/
+        }
+
+        .profile-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: white;
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            float: left; /* Float to the left */
+            margin-right: 20px; /* Space between profile circle and button */
+            line-height: 50px; /* Center text vertically */
+        }
+
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            top: 60px;
+            left: 0;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            padding: 10px;
+        }
+
+            .profile-dropdown.show {
+                display: block;
+            }
+
+        .navbar {
+            padding: 10px 0; /* Adjust navbar padding if needed */
+            background-color: #e11e25;
+        }
+
+            .navbar .container {
+                position: relative; /* Allow absolute positioning of dropdown */
+                height: 50px; /* Set a height to align items */
+                background-color: #e11e25;
+            }
+
+        .logout-container {
+            float: right; /* Float logout button to the right */
+            line-height: 50px; /* Center vertically */
+        }
+
+        /* Clear floats */
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container clearfix">
+            <!-- Added clearfix class -->
+            <div class="profile-circle" id="profileCircle">
+                @if (profile != null)
+                {
+                    @profile.firstName[0] @profile.lastName[0]
+                }
+            </div>
+            <div class="logout-container">
+                <a href="https://veripark.com" target="_blank">
+                    <img src="~/Content/VeriparkLogoRed.png" alt="Veripark Logo" style="height: 40px; cursor: pointer;" />
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container body-content">
+        @if (profile != null)
+        {
+            <div class="profile-dropdown" id="profileDropdown">
+                <h5>@profile.firstName @profile.lastName</h5>
+                <p><strong>Email:</strong> @profile.emailAddress</p>
+                <p><strong>Phone:</strong> @profile.mobileNumber</p>
+                <button class="btn btn-danger logout-button" id="logoutButton">Sign Out</button>
+            </div>
+        }
+
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year</p>
+        </footer>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/toastr")
+    @RenderSection("scripts", required: false)
+
+    <script>
+        $(document).ready(function () {
+            var successMessage = '@ViewBag.Success';
+            if (successMessage) {
+                toastr.success(successMessage);
+            }
+
+            // Profile dropdown toggle
+            $('#profileCircle').on('click', function() {
+                $('#profileDropdown').toggleClass('show');
+            });
+
+            // Sign out button
+            $('#logoutButton').on('click', function() {
+                window.location.href = '@Url.Action("Index", "Home")'; // Adjust as necessary
+            });
+
+            // Close the dropdown if clicked outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#profileCircle').length) {
+                    $('#profileDropdown').removeClass('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

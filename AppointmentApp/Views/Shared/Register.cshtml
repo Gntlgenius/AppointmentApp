@@ -1,0 +1,221 @@
+﻿@model CRMIntegration.Models.UserDetails
+
+@{
+    ViewBag.Title = "New User Registration";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row" style="margin-top: 50px">
+    <div class="col-md-12 text-right">
+        @Html.ActionLink("Go to Login", "Index", "Home", null, new { @class = "btn btn-success" })
+    </div>
+</div>
+
+<h2 style="color: #1d3043">Register New User</h2>
+
+@using (Html.BeginForm("Create", "Account", FormMethod.Post, new { @class = "form-horizontal", id = "createUserForm" }))
+{
+    <div class="form-group">
+        @Html.LabelFor(model => model.firstName, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(model => model.firstName, new { @class = "form-control", id = "firstName" })
+            <span class="text-danger" id="firstNameError"></span> <!-- Error display -->
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.middleName, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(model => model.middleName, new { @class = "form-control", id = "middleName" })
+            <span class="text-danger" id="middleNameError"></span> <!-- Error display -->
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.lastName, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(model => model.lastName, new { @class = "form-control", id = "lastName" })
+            <span class="text-danger" id="lastNameError"></span> <!-- Error display -->
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Username, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(model => model.Username, new { @class = "form-control", id = "Username", autocomplete = "off" })
+            <span class="text-danger" id="usernameError"></span> <!-- Error display -->
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.mobileNumber, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(model => model.mobileNumber, new { @class = "form-control", id = "mobileNumber" })
+            <span class="text-danger" id="mobileNumberError"></span> <!-- Error display -->
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.emailAddress, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(model => model.emailAddress, new { @class = "form-control", id = "emailAddress" })
+            <span class="text-danger" id="emailAddressError"></span> <!-- Error display -->
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.address, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(model => model.address, new { @class = "form-control", id = "address" })
+            <span class="text-danger" id="addressError"></span> <!-- Error display -->
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.companyId, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(model => model.companyId, new { @class = "form-control", id = "companyId" })
+            <span class="text-danger" id="companyIdError"></span> <!-- Error display -->
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.companyName, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(model => model.companyName, new { @class = "form-control", id = "companyName" })
+            <span class="text-danger" id="companyNameError"></span> <!-- Error display -->
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.password, new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.PasswordFor(model => model.password, new { @class = "form-control", id = "password",  autocomplete = "off" })
+            <span class="text-danger" id="passwordError"></span> <!-- Error display -->
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" id="createUserBtn" class="btn btn-primary" value="Create User" />
+            @Html.ActionLink("Cancel", "Index", "Home", null, new { @class = "btn btn-danger" })
+        </div>
+    </div>
+
+    <div id="errorMsg" style="color: red;"></div>
+    <div id="successMsg" style="color: green; display: none;"></div>
+}
+
+<style>
+    body, html {
+        height: 100%;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: whitesmoke;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    #createUserForm {
+        background: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 10px;
+    }
+</style>
+
+<script>
+    document.getElementById('createUserForm').addEventListener('submit', async function (event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        // Disable the submit button to prevent multiple submissions
+        const submitButton = document.getElementById('createUserBtn');
+        submitButton.disabled = true;
+        submitButton.value = 'Processing...'; // Change button text
+
+        // Clear previous error messages
+        const errorFields = [
+            'firstNameError', 'middleNameError', 'lastNameError', 'usernameError',
+            'mobileNumberError', 'emailAddressError', 'addressError',
+            'companyIdError', 'companyNameError', 'passwordError'
+        ];
+        errorFields.forEach(field => document.getElementById(field).textContent = '');
+
+        // Gather input data
+        const firstName = document.getElementById('firstName').value.trim();
+        const middleName = document.getElementById('middleName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const username = document.getElementById('Username').value.trim();
+        const mobileNumber = document.getElementById('mobileNumber').value.trim();
+        const emailAddress = document.getElementById('emailAddress').value.trim();
+        const companyId = document.getElementById('companyId').value.trim();
+        const companyName = document.getElementById('companyName').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const address = document.getElementById('address').value.trim();
+
+        // Validate required fields
+        const errors = {};
+        if (!firstName) errors.firstName = 'First name is required.';
+        if (!lastName) errors.lastName = 'Last name is required.';
+        if (!username) errors.username = 'Username is required.';
+        if (!mobileNumber) errors.mobileNumber = 'Mobile number is required.';
+        if (!emailAddress) errors.emailAddress = 'Email address is required.';
+
+        // If there are validation errors, show them and stop the submission
+        if (Object.keys(errors).length > 0) {
+            Object.keys(errors).forEach(key => {
+                document.getElementById(`${key}Error`).textContent = errors[key];
+            });
+            submitButton.disabled = false;
+            submitButton.value = 'Create User'; // Reset button text
+            return; // Stop the form submission
+        }
+
+        // Prepare the data to be sent
+        const formData = new URLSearchParams();
+        formData.append('firstName', firstName);
+        formData.append('middleName', middleName);
+        formData.append('lastName', lastName);
+        formData.append('Username', username);
+        formData.append('mobileNumber', mobileNumber);
+        formData.append('emailAddress', emailAddress);
+        formData.append('companyId', companyId);
+        formData.append('companyName', companyName);
+        formData.append('password', password);
+        formData.append('address', address);
+
+        // Make the AJAX call
+        const response = await fetch('@Url.Action("Create", "Account")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData
+        });
+
+        // Handle the response
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                // Show success message
+                const successMsg = document.getElementById('successMsg');
+                successMsg.textContent = 'Registration successful, please proceed to Login.';
+                successMsg.style.display = 'block'; // Display success message
+            } else {
+                // Display validation errors
+                result.errors.forEach(error => {
+                    if (error.field) {
+                        document.getElementById(`${error.field}Error`).textContent = error.message;
+                    }
+                });
+            }
+        } else {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = 'An unexpected error occurred. Please try again later.';
+        }
+
+        // Re-enable the submit button after processing
+        submitButton.disabled = false;
+        submitButton.value = 'Create User'; // Reset button text
+    });
+</script>

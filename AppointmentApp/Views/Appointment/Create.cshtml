@@ -1,0 +1,185 @@
+﻿@model CRMIntegration.Models.CustomerAppointment
+@{
+    ViewBag.Title = "Request New Appointment";
+}
+
+<div class="container mt-5" style="margin-top: 60px">
+    <h2 class="text-center mb-4" style="color: #1d3043">@ViewBag.Title</h2>
+
+    @using (Html.BeginForm("Create", "Appointment", FormMethod.Post, new { @class = "form-horizontal", id = "createAppointmentForm", @style = "background-color: rgba(255, 255, 255, 0.8); padding: 20px; border-radius: 5px;" }))
+    {
+        <div class="form-group">
+            @Html.LabelFor(model => model.DiscussionSubject, new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.TextBoxFor(model => model.DiscussionSubject, new { @class = "form-control", id = "discussionSubject" })
+                <span class="text-danger" id="discussionSubjectError" style="display:none;"></span>
+                @Html.ValidationMessageFor(model => model.DiscussionSubject)
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Description, new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.TextAreaFor(model => model.Description, new { @class = "form-control", rows = 4 })
+                @Html.ValidationMessageFor(model => model.Description)
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Preferred Days", new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @foreach (var day in new[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" })
+                {
+                    var dayValue = 126500000 + Array.IndexOf(new[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" }, day);
+                    <div class="form-check">
+                        <input type="checkbox" name="PreferredDays" value="@dayValue" class="form-check-input" id="@day" />
+                        <label class="form-check-label" for="@day">@day</label>
+                    </div>
+                }
+                <span class="text-danger" id="preferredDaysError" style="display:none;"></span>
+                @Html.ValidationMessage("PreferredDays")
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Preferred Time", new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @foreach (var time in new[] { "9am - 11am", "11am - 2pm", "2pm - 5pm", "5pm - 7pm" })
+                {
+                    var timeValue = 126500000 + Array.IndexOf(new[] { "9am - 11am", "11am - 2pm", "2pm - 5pm", "5pm - 7pm" }, time);
+                    <div class="form-check">
+                        <input type="checkbox" name="PreferredTime" value="@timeValue" class="form-check-input" id="@time" />
+                        <label class="form-check-label" for="@time">@time</label>
+                    </div>
+                }
+                <span class="text-danger" id="preferredTimeError" style="display:none;"></span>
+                @Html.ValidationMessage("PreferredTime")
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <div id="errorMsg" style="color: red;"></div>
+                <input type="submit" class="btn btn-success" value="Submit" id="submitButton" />
+                @Html.ActionLink("Back", "Back", "Account", null, new { @class = "btn btn-danger" })
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('createAppointmentForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent default submission
+
+            // Clear previous error messages
+            document.getElementById('discussionSubjectError').style.display = 'none';
+            document.getElementById('preferredDaysError').style.display = 'none';
+            document.getElementById('preferredTimeError').style.display = 'none';
+            document.getElementById('errorMsg').textContent = '';
+
+            // Gather input data
+            const discussionSubject = document.getElementById('discussionSubject').value;
+            const selectedPreferredDays = Array.from(document.querySelectorAll('input[name="PreferredDays"]:checked')).map(checkbox => checkbox.value);
+            const selectedPreferredTimes = Array.from(document.querySelectorAll('input[name="PreferredTime"]:checked')).map(checkbox => checkbox.value);
+
+            let hasError = false;
+
+            // Validate Discussion Subject
+            if (!discussionSubject) {
+                document.getElementById('discussionSubjectError').textContent = 'Discussion Subject is required.';
+                document.getElementById('discussionSubjectError').style.display = 'block';
+                hasError = true;
+            }
+
+            // Validate Preferred Days
+            if (selectedPreferredDays.length === 0) {
+                document.getElementById('preferredDaysError').textContent = 'At least one Preferred Day must be selected.';
+                document.getElementById('preferredDaysError').style.display = 'block';
+                hasError = true;
+            }
+
+            // Validate Preferred Time
+            if (selectedPreferredTimes.length === 0) {
+                document.getElementById('preferredTimeError').textContent = 'At least one Preferred Time must be selected.';
+                document.getElementById('preferredTimeError').style.display = 'block';
+                hasError = true;
+            }
+
+            if (!hasError) {
+                // Disable the submit button to prevent multiple submissions
+                const submitButton = document.getElementById('submitButton');
+                submitButton.disabled = true;
+                submitButton.value = 'Processing...'; 
+
+                // Prepare the data to be sent
+                const formData = new URLSearchParams();
+                formData.append('DiscussionSubject', discussionSubject);
+                formData.append('Description', document.querySelector('textarea').value);
+                formData.append('PreferredDays', selectedPreferredDays.join(','));
+                formData.append('PreferredTime', selectedPreferredTimes.join(','));
+
+                // Make the AJAX call
+                fetch('@Url.Action("Create", "Appointment")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(result => {
+                    // Re-enable the submit button after processing
+                    submitButton.disabled = false;
+                    submitButton.value = 'Submit'; 
+
+                    if (result.success) {
+                        window.location.href = result.redirectUrl; // Redirect on success
+                    } else {
+                        document.getElementById('errorMsg').textContent = result.errors.join(', '); // Display validation errors
+                    }
+                })
+                .catch(error => {
+                    console.error("Error during form submission:", error);
+                    document.getElementById('errorMsg').textContent = 'An error occurred. Please check your connection or try again later.';
+                    submitButton.disabled = false; // Re-enable button on error
+                    submitButton.value = 'Submit'; // Reset button text
+                });
+            }
+        });
+    });
+</script>
+
+<style>
+    body, html {
+        height: 100%;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: whitesmoke;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .form-control {
+        border-radius: 4px;
+    }
+
+    h2 {
+        margin-top: 20px;
+    }
+</style>
